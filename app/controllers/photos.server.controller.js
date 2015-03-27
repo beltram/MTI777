@@ -72,13 +72,36 @@ var getCoordinate = function(country,region,city,callback) {
 			api_key: '131095906@N04',
 			url: '/'+country+region+city+''
 		}, function(err, result) {
-			var loc = result.location;
-			callback(loc.latitude,loc.longitude);
+			if(!err) {
+				var loc = result.location;
+				callback(loc.latitude,loc.longitude,country,region,city);
+			} else {
+				callback(null,null,country,region,city);
+			}
+			
 		});
 	});
 };
 
-var instaToModel = function(photos,lat,lon,limit,sortBy,sort,callback) {
+var getLocation = function(lat,lon,callback) {
+	flickr.authenticate(flickrOptions, function(error, flickr) {
+		flickr.places.findByLatLon({
+			api_key: '131095906@N04',
+			lat: lat,
+			lon:lon
+		}, function(err, result) {
+			flickr.places.resolvePlaceId({
+				api_key: '131095906@N04',
+				place_id: result.places.place[0].place_id
+			}, function(err, result) {
+				var loc = result.location;
+				callback(loc.country._content,loc.region._content,loc.locality._content);
+			});
+		});
+	});
+};
+
+var instaToModel = function(photos,lat,lon,limit,sortBy,sort,country,region,city,callback) {
 	var aggr = [];
 	for (var i in photos) {
 		var ph = photos[i],
@@ -101,6 +124,9 @@ var instaToModel = function(photos,lat,lon,limit,sortBy,sort,callback) {
 				provider: 'Instagram',
 				latitude: ph.location.latitude+'',
 				longitude: ph.location.longitude+'',
+				country: country,
+				region: region,
+				city: city,
 				proximity: prox+'',
 				owner_id: ph.user.id,
 				owner_name: ph.user.full_name,
@@ -118,6 +144,9 @@ var instaToModel = function(photos,lat,lon,limit,sortBy,sort,callback) {
 				provider: 'Instagram',
 				latitude: ph.location.latitude+'',
 				longitude: ph.location.longitude+'',
+				country: country,
+				region: region,
+				city: city,
 				proximity: prox+'',
 				owner_id: ph.user.id,
 				owner_name: ph.user.full_name,
@@ -137,7 +166,7 @@ var instaToModel = function(photos,lat,lon,limit,sortBy,sort,callback) {
 	callback(aggr);
 };
 
-var flickrToModel = function(photos,lat,lon,limit,sortBy,sort,callback) {
+var flickrToModel = function(photos,lat,lon,limit,sortBy,sort,country,region,city,callback) {
 	var aggr = [];
 	flickr.authenticate(flickrOptions, function(error, flickr) {
 		var getInfo = function(err,re){
@@ -157,6 +186,9 @@ var flickrToModel = function(photos,lat,lon,limit,sortBy,sort,callback) {
 				provider: 'Flickr',
 				latitude: ph.location.latitude,
 				longitude: ph.location.longitude,
+				country: country,
+				region: region,
+				city: city,
 				proximity: prox+'',
 				owner_id: ph.owner.nsid,
 				owner_name: ph.owner.realname,
@@ -194,14 +226,14 @@ exports.getPhotosByCoordinates = function(req, res) {
 							radius = req.param('radius') ? req.param('radius') : 1000,
 							latitude = par.latitude,
 							longitude = par.longitude;
-			console.log(latitude,longitude);
+			getLocation(latitude,longitude,function(country,region,city){
 			async.parallel([
 			                function(callback){
 			                	var options = {};
 			                	options.count=100;
 			                	options.distance = radius;
 			                	ig.media_search(Number(latitude),Number(longitude),options, function(err, medias, remaining, limit) {
-			                		instaToModel(medias,Number(latitude),Number(longitude),_limit*number_of_apis,sortBy,sort,function(r){
+			                		instaToModel(medias,Number(latitude),Number(longitude),_limit*number_of_apis,sortBy,sort,country,region,city,function(r){
 			                			callback(null,r); 
 			                		});
 			                	});
@@ -217,7 +249,7 @@ exports.getPhotosByCoordinates = function(req, res) {
 			                			per_page: 100
 			                		}, function(err, result) {
 			                			var photos = result.photos.photo;
-			                			flickrToModel(photos,Number(latitude),Number(longitude),_limit*number_of_apis,sortBy,sort,function(r){
+			                			flickrToModel(photos,Number(latitude),Number(longitude),_limit*number_of_apis,sortBy,sort,country,region,city,function(r){
 			                				callback(null,r);
 			                			});
 			                		});
@@ -234,6 +266,7 @@ exports.getPhotosByCoordinates = function(req, res) {
 				//truncate the result
 				fi=fi.slice(0,_limit);
 				res.send(fi);
+			});
 			});
 };
 
@@ -260,14 +293,17 @@ exports.getPhotosByFullLocation = function(req, res) {
 					}
 				}		 
 			}
-			getCoordinate(country,region,city,function(lat,lon){
+			getCoordinate(country,region,city,function(lat,lon,country,region,city){
+				if(!lat && !lon) {
+					res.send('error');
+				} else {
 				async.parallel([
 				                function(callback){
 				                	var options = {};
 				                	options.count=10;
 				                	options.distance = radius;
 				                	ig.media_search(Number(lat),Number(lon),options, function(err, medias, remaining, limit) {
-				                		instaToModel(medias,Number(lat),Number(lon),_limit*number_of_apis,sortBy,sort,function(r){
+				                		instaToModel(medias,Number(lat),Number(lon),_limit*number_of_apis,sortBy,sort,country,region,city,function(r){
 				                			callback(null,r); 
 				                		});
 				                	});
@@ -283,7 +319,7 @@ exports.getPhotosByFullLocation = function(req, res) {
 				                			per_page: 10
 				                		}, function(err, result) {
 				                			var photos = result.photos.photo;
-				                			flickrToModel(photos,Number(lat),Number(lon),_limit*number_of_apis,sortBy,sort,function(r){
+				                			flickrToModel(photos,Number(lat),Number(lon),_limit*number_of_apis,sortBy,sort,country,region,city,function(r){
 				                				callback(null,r);
 				                			});
 				                		});
@@ -301,6 +337,7 @@ exports.getPhotosByFullLocation = function(req, res) {
 					fi=fi.slice(0,_limit);
 					res.send(fi);
 				});
+				}
 			});
 };
 
