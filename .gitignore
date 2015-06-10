@@ -3,7 +3,11 @@
 .sass-cache/
 npm-debug.log
 node_modules/
-public/lib
+public
 app/tests/coverage/
 .bower-*/
 .idea/
+.project
+config/
+gruntfile.js
+karma.conf.js

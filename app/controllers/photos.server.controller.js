@@ -300,7 +300,7 @@ exports.getPhotosByFullLocation = function(req, res) {
 				async.parallel([
 				                function(callback){
 				                	var options = {};
-				                	options.count=10;
+				                	options.count=100;
 				                	options.distance = radius;
 				                	ig.media_search(Number(lat),Number(lon),options, function(err, medias, remaining, limit) {
 				                		instaToModel(medias,Number(lat),Number(lon),_limit*number_of_apis,sortBy,sort,country,region,city,function(r){
@@ -316,7 +316,7 @@ exports.getPhotosByFullLocation = function(req, res) {
 				                			lon: lon,
 				                			radius: Math.floor(radius/1000),
 				                			radius_units: 'km',
-				                			per_page: 10
+				                			per_page: 100
 				                		}, function(err, result) {
 				                			var photos = result.photos.photo;
 				                			flickrToModel(photos,Number(lat),Number(lon),_limit*number_of_apis,sortBy,sort,country,region,city,function(r){
