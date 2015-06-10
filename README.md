@@ -43,4 +43,4 @@ de photos selon leur géolocalisation.
 - (7-6) Enrichissement des métadonnées sur les photos Flickr dû au manque d'information retourné par le service à l'opération précédente.
 ![architecture](mti777_architecture.png)
 
-Développé dans le cadre de l'UV MTI777 (Intelligence Artificielle) à l'ETS de Montréal.
+Développé dans le cadre de l'UV [MTI777](http://www.etsmtl.ca/Futurs-etudiants/Cycles-sup/Fiche-de-cours?Sigle=MTI777) (Conception de services de réseautique et de messagerie) à l'ETS de Montréal.
