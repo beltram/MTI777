@@ -41,6 +41,6 @@ de photos selon leur géolocalisation.
 - (2-3) Utilisation du services places de l'API Flickr afin d'associer un nom de lieu à ses coordonnées géographiques.
 - (4-5) Interrogation des services de recherche de photos en fonction de coordonnées géographiques.
 - (7-6) Enrichissement des métadonnées sur les photos Flickr dû au manque d'information retourné par le service à l'opération précédente.
-![architecture](./mti777_architecture.png)
+![architecture](mti777_architecture.png)
 
 Développé dans le cadre de l'UV MTI777 (Intelligence Artificielle) à l'ETS de Montréal.
